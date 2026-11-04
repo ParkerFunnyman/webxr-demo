@@ -5,7 +5,31 @@
 
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
 
-    <script src="https://unpkg.com/aframe-environment-component@1.5.x/dist/aframe-environment-component.min.js"></script>
+    <script
+        src="https://unpkg.com/aframe-environment-component@1.5.x/dist/aframe-environment-component.min.js"></script>
+
+    <script>
+        function getRandomPokemon(name) {
+            const apiUrl = `https://pokeapi.co/api/v2/pokemon/${Math.floor(Math.random() * 1025) + 1}`;
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Not found");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const textElement = document.querySelector('#pokemon-name');
+                    const imageElement = document.querySelector('#pokemon-sprite');
+                    textElement.setAttribute('value', `Last Pokemon Caught: ${data.name.toUpperCase().replace("-", " ")}`);
+                    imageElement.setAttribute('src', data.sprites.front_default);
+                })
+                .catch(error => {
+                    document.querySelector('#pokemon-name').setAttribute('value', 'Last Pokemon Caught: MISSINGNO.');
+                    document.querySelector('#pokemon-sprite').setAttribute('src', 'https://i1.sndcdn.com/artworks-000162710657-kt4rb1-t500x500.jpg');
+                })
+        }
+    </script>
 
 </head>
 
@@ -15,10 +39,11 @@
         <a-light type="ambient" color="#222"></a-light>
         <a-light type="directional" position="-1 2 1" intensity="1.5"></a-light>
         <a-camera look-controls="pointerLockEnabled: false">
-            <a-text id="pokeinfo" value="Last Caught Pokemon: MISSING NO." position="-1.1 0.6 -1" color="#FFF" width="3"></a-text>
+            <a-text id="pokemon-name" value="Last Pokemon Caught: MISSINGNO." position="-1.1 0.6 -1" color="#FFF"
+                width="3"></a-text>
         </a-camera>
         <a-sphere id="pokeball" radius="0.1" color="#FFF" position="0 1 -2"></a-sphere>
-        <a-plane src="https://i.redd.it/yebfa2gpb0se1.png" position="0 1 -5"></a-plane>
+        <a-plane id="pokemon-sprite" src="https://i1.sndcdn.com/artworks-000162710657-kt4rb1-t500x500.jpg" position="0 1 -5"></a-plane>
     </a-scene>
 </body>
 
