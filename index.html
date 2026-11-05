@@ -8,8 +8,41 @@
     <script
         src="https://unpkg.com/aframe-environment-component@1.5.x/dist/aframe-environment-component.min.js"></script>
 
+    
+    <style>
+        #spawner {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="spawner">
+        <button id="button">New Critter</button>
+    </div>
+    <a-scene>
+        <a-entity environment="preset: yavapai; skyType: atmosphere; lighting: none"></a-entity>
+        <a-light type="ambient" color="#222"></a-light>
+        <a-light type="directional" position="-1 2 1" intensity="1.5"></a-light>
+        <a-camera look-controls="pointerLockEnabled: false">
+
+            <a-text id="pokemon-name" value="Last Pokemon Caught: MISSINGNO." position="-1.1 0.6 -1" color="#FFF"
+                width="3"></a-text>
+        </a-camera>
+        <a-sphere id="pokeball" radius="0.1" color="#FFF" position="0 1 -2"></a-sphere>
+        <a-plane id="pokemon-sprite" src=""
+            position="0 1 -5" material="transparent: true; alphaTest: 0.5"></a-plane>
+    </a-scene>
+
     <script>
-        function getRandomPokemon(name) {
+        function getRandomPokemon() {
             const apiUrl = `https://pokeapi.co/api/v2/pokemon/${Math.floor(Math.random() * 1025) + 1}`;
             fetch(apiUrl)
                 .then(response => {
@@ -22,29 +55,18 @@
                     const textElement = document.querySelector('#pokemon-name');
                     const imageElement = document.querySelector('#pokemon-sprite');
                     textElement.setAttribute('value', `Last Pokemon Caught: ${data.name.toUpperCase().replace("-", " ")}`);
-                    imageElement.setAttribute('src', data.sprites.front_default);
+                    imageElement.setAttribute('material', 'src', data.sprites.front_default);
                 })
                 .catch(error => {
                     document.querySelector('#pokemon-name').setAttribute('value', 'Last Pokemon Caught: MISSINGNO.');
-                    document.querySelector('#pokemon-sprite').setAttribute('src', 'https://i1.sndcdn.com/artworks-000162710657-kt4rb1-t500x500.jpg');
+                    document.querySelector('#pokemon-sprite').setAttribute('material', 'src', '');
                 })
         }
+
+        document.querySelector('#button').addEventListener('click', () => {
+            getRandomPokemon();
+        })
     </script>
-
-</head>
-
-<body>
-    <a-scene>
-        <a-entity environment="preset: yavapai; skyType: atmosphere; lighting: none"></a-entity>
-        <a-light type="ambient" color="#222"></a-light>
-        <a-light type="directional" position="-1 2 1" intensity="1.5"></a-light>
-        <a-camera look-controls="pointerLockEnabled: false">
-            <a-text id="pokemon-name" value="Last Pokemon Caught: MISSINGNO." position="-1.1 0.6 -1" color="#FFF"
-                width="3"></a-text>
-        </a-camera>
-        <a-sphere id="pokeball" radius="0.1" color="#FFF" position="0 1 -2"></a-sphere>
-        <a-plane id="pokemon-sprite" src="https://i1.sndcdn.com/artworks-000162710657-kt4rb1-t500x500.jpg" position="0 1 -5"></a-plane>
-    </a-scene>
 </body>
 
 </html>
