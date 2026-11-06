@@ -2,9 +2,10 @@
 <html>
 
 <head>
-
+    <!-- Import A-Frame framework -->
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
 
+    <!-- Import environment component -->
     <script
         src="https://unpkg.com/aframe-environment-component@1.5.x/dist/aframe-environment-component.min.js"></script>
 
@@ -34,6 +35,7 @@
                 })
         }
     </script>
+    <!-- Registers customer Components -->
     <script>
         AFRAME.registerComponent('face-camera-y', {
             init: function () {
@@ -59,9 +61,10 @@
                     let y = (Math.random() * 2) + 1;  // Spawns at different heights
                     let z = -(Math.random() * 5) - 1; //Spawns closer and further to player
 
+                    getPokemon(dexNumber, pokemon);
+
                     pokemon.dexNum = dexNumber;
                     pokemon.setAttribute('material', 'transparent: true; alphaTest: 0.5');
-                    getPokemon(dexNumber, pokemon);
                     pokemon.setAttribute('position', `${x} ${y} ${z}`);
                     pokemon.classList.add('pokemon'); // Marks it as shootable
                     pokemon.setAttribute('shader', 'flat');
