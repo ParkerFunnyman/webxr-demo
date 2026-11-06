@@ -9,7 +9,7 @@
         src="https://unpkg.com/aframe-environment-component@1.5.x/dist/aframe-environment-component.min.js"></script>
 
     <script>
-        function getPokemon(dexNum, pokemon, name) {
+        function getPokemon(dexNum, pokemon, changeText) {
             const apiUrl = `https://pokeapi.co/api/v2/pokemon/${dexNum}`;
             fetch(apiUrl)
                 .then(response => {
@@ -20,8 +20,14 @@
                 })
                 .then(data => {
                     const sprite = data.sprites.front_default;
-                    name = data.name.toUpperCase().replace("-", " ");
-                    pokemon.setAttribute('material', 'src', sprite);
+                    let name = data.name.toUpperCase().replace("-", " ");
+                    
+                    if (changeText) {
+                        document.querySelector('#pokemon-name').setAttribute('value', `Last Pokemon Caught: ${name}`);
+                    }
+                    else{
+                        pokemon.setAttribute('material', 'src', sprite);
+                    }
                 })
                 .catch(error => {
                     document.querySelector('#pokemon-name').setAttribute('value', 'Last Pokemon Caught: MISSINGNO.');
@@ -42,11 +48,12 @@
                     let y = (Math.random() * 2) + 1;  // Spawns at different heights
                     let z = -(Math.random() * 5) - 1; //Spawns closer and further to player
 
-
+                    pokemon.dexNum = dexNumber;
                     pokemon.setAttribute('material', 'transparent: true; alphaTest: 0.5');
-                    getPokemon(dexNumber, pokemon, pokemonName);
+                    getPokemon(dexNumber, pokemon);
                     pokemon.setAttribute('position', `${x} ${y} ${z}`);
                     pokemon.classList.add('pokemon'); // Marks it as shootable
+                    pokemon.setAttribute('look-at', '#main-camera');
 
                     this.el.sceneEl.appendChild(pokemon);
 
@@ -63,6 +70,7 @@
                     if (hits.length > 0 && hits[0].classList.contains('pokemon')) {
                         const caught = hits[0];
                         setTimeout(() => caught.remove(), 100);  // Destroy target
+                        getPokemon(caught.dexNum, undefined, true);
                     }
                 });
             }
@@ -79,7 +87,7 @@
 
         <a-light type="directional" position="-1 2 1" intensity="1.5"></a-light>
 
-        <a-camera look-controls="pointerLockEnabled: false">
+        <a-camera id="main-camera" look-controls="pointerLockEnabled: false">
 
             <a-text id="pokemon-name" value="Last Pokemon Caught: MISSINGNO." position="-1.1 0.6 -1" color="#FFF"
                 width="3"></a-text>
