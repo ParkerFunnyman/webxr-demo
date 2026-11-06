@@ -9,8 +9,8 @@
         src="https://unpkg.com/aframe-environment-component@1.5.x/dist/aframe-environment-component.min.js"></script>
 
     <script>
-        function getRandomPokemon(name, target) {
-            const apiUrl = `https://pokeapi.co/api/v2/pokemon/${Math.floor(Math.random() * 1025) + 1}`;
+        function getPokemon(dexNum, pokemon, name) {
+            const apiUrl = `https://pokeapi.co/api/v2/pokemon/${dexNum}`;
             fetch(apiUrl)
                 .then(response => {
                     if (!response.ok) {
@@ -19,15 +19,12 @@
                     return response.json();
                 })
                 .then(data => {
-                    const textElement = document.querySelector('#pokemon-name');
-                    const imageElement = document.querySelector('#pokemon-sprite');
-                    target.setAttribute('src', data.sprites.front_default);
-                    textElement.setAttribute('value', `Last Pokemon Caught: ${data.name.toUpperCase().replace("-", " ")}`);
-                    imageElement.setAttribute('material', 'src', data.sprites.front_default);
+                    const sprite = data.sprites.front_default;
+                    name = data.name.toUpperCase().replace("-", " ");
+                    pokemon.setAttribute('material', 'src', sprite);
                 })
                 .catch(error => {
                     document.querySelector('#pokemon-name').setAttribute('value', 'Last Pokemon Caught: MISSINGNO.');
-                    document.querySelector('#pokemon-sprite').setAttribute('material', 'src', '');
                 })
         }
     </script>
@@ -36,34 +33,36 @@
             init: function () {
                 this.scoreText = document.querySelector('#pokemon-name');
 
-                // The Spawner: Creates a dark target every 1.5 seconds
                 setInterval(() => {
-                    let target = document.createElement('a-plane');
-                    let x = (Math.random() * 12) - 6; // Spawns left to right
-                    let y = (Math.random() * 4) + 1;  // Spawns at different heights
+                    let pokemon = document.createElement('a-plane');
+                    let dexNumber = Math.floor(Math.random() * 1025) + 1;
+                    let pokemonName = "";
 
-                    target.setAttribute('material', 'transparent: true; alphaTest: 0.5');
-                    target.setAttribute('src', getRandomPokemon(null, target));
-                    target.setAttribute('position', `${x} ${y} -8`);
-                    target.classList.add('catchable'); // Marks it as shootable
-                    this.el.sceneEl.appendChild(target);
+                    let x = (Math.random() * 12) - 6; // Spawns left to right
+                    let y = (Math.random() * 2) + 1;  // Spawns at different heights
+                    let z = -(Math.random() * 5) - 1; //Spawns closer and further to player
+
+
+                    pokemon.setAttribute('material', 'transparent: true; alphaTest: 0.5');
+                    getPokemon(dexNumber, pokemon, pokemonName);
+                    pokemon.setAttribute('position', `${x} ${y} ${z}`);
+                    pokemon.classList.add('pokemon'); // Marks it as shootable
+
+                    this.el.sceneEl.appendChild(pokemon);
 
                     // Auto-despawn so the browser doesn't crash
-                    setTimeout(() => { if (target.parentNode) target.remove() }, 4000);
+                    setTimeout(() => { if (pokemon.parentNode) pokemon.remove() }, 4000);
                 }, 1500);
 
-                // The Wand: Fires a spell when you click the mouse or tap the screen
                 window.addEventListener('mousedown', () => {
-                    document.querySelector('#wand').emit('cast'); // Triggers wand recoil animation
+                    document.querySelector('#pokeball').emit('catch');
 
                     let raycaster = document.querySelector('[raycaster]').components.raycaster;
                     let hits = raycaster.intersectedEls;
 
-                    if (hits.length > 0 && hits[0].classList.contains('target')) {
-                        hits[0].setAttribute('color', '#00FFFF'); // Flash neon blue on hit
-                        setTimeout(() => hits[0].remove(), 100);  // Destroy target
-                        this.score += 100;
-                        this.scoreText.setAttribute('value', 'SCORE: ' + this.score);
+                    if (hits.length > 0 && hits[0].classList.contains('pokemon')) {
+                        const caught = hits[0];
+                        setTimeout(() => caught.remove(), 100);  // Destroy target
                     }
                 });
             }
@@ -73,17 +72,32 @@
 
 <body>
     <a-scene pokemon-route>
-        <a-entity environment="preset: yavapai; skyType: atmosphere; lighting: none"></a-entity>
+
+        <a-entity environment="preset: forest; skyType: atmosphere; lighting: none"></a-entity>
+
         <a-light type="ambient" color="#222"></a-light>
+
         <a-light type="directional" position="-1 2 1" intensity="1.5"></a-light>
+
         <a-camera look-controls="pointerLockEnabled: false">
 
             <a-text id="pokemon-name" value="Last Pokemon Caught: MISSINGNO." position="-1.1 0.6 -1" color="#FFF"
                 width="3"></a-text>
-        </a-camera>
-        <a-sphere id="pokeball" radius="0.1" color="#FFF" position="0 1 -2"></a-sphere>
 
-        <a-entity cursor></a-entity>
+            <a-entity cursor raycaster="objects: .pokemon; far: 50" position="0 0 -1"
+                geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.02"
+                material="color: gray; shader: flat; opacity: 0.7">
+            </a-entity>
+            <a-sphere id="pokeball" radius="0.1" color="red" position="0.3 -0.3 -0.5" animation__catch="property: position; 
+                from: 0.3 -0.3 -0.5;
+                to: 0 0 -15; 
+                dur: 800; 
+                easing: linear; 
+                autoplay: false; 
+                startEvents: catch;"></a-sphere>
+        </a-camera>
+
+
     </a-scene>
 </body>
 
