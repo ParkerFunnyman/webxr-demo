@@ -9,7 +9,7 @@
         src="https://unpkg.com/aframe-environment-component@1.5.x/dist/aframe-environment-component.min.js"></script>
 
     <script>
-        function getRandomPokemon(name, sprite) {
+        function getRandomPokemon(name, target) {
             const apiUrl = `https://pokeapi.co/api/v2/pokemon/${Math.floor(Math.random() * 1025) + 1}`;
             fetch(apiUrl)
                 .then(response => {
@@ -21,10 +21,9 @@
                 .then(data => {
                     const textElement = document.querySelector('#pokemon-name');
                     const imageElement = document.querySelector('#pokemon-sprite');
-                    const pokemonSprite = data.sprites.front_default;
+                    target.setAttribute('src', data.sprites.front_default);
                     textElement.setAttribute('value', `Last Pokemon Caught: ${data.name.toUpperCase().replace("-", " ")}`);
                     imageElement.setAttribute('material', 'src', data.sprites.front_default);
-                    return pokemonSprite;
                 })
                 .catch(error => {
                     document.querySelector('#pokemon-name').setAttribute('value', 'Last Pokemon Caught: MISSINGNO.');
@@ -43,10 +42,10 @@
                     let x = (Math.random() * 12) - 6; // Spawns left to right
                     let y = (Math.random() * 4) + 1;  // Spawns at different heights
 
-                    target.setAttribute('src', getRandomPokemon());
-                    target.setAttribute('position', `${x} ${y} -8`);
                     target.setAttribute('material', 'transparent: true; alphaTest: 0.5');
-                    target.classList.add('target'); // Marks it as shootable
+                    target.setAttribute('src', getRandomPokemon(null, target));
+                    target.setAttribute('position', `${x} ${y} -8`);
+                    target.classList.add('catchable'); // Marks it as shootable
                     this.el.sceneEl.appendChild(target);
 
                     // Auto-despawn so the browser doesn't crash
@@ -70,25 +69,9 @@
             }
         });
     </script>
-
-    <style>
-        #spawner {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 100;
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            font-family: sans-serif;
-        }
-    </style>
 </head>
 
 <body>
-    <div id="spawner">
-        <button id="button">New Critter</button>
-    </div>
     <a-scene pokemon-route>
         <a-entity environment="preset: yavapai; skyType: atmosphere; lighting: none"></a-entity>
         <a-light type="ambient" color="#222"></a-light>
@@ -99,13 +82,9 @@
                 width="3"></a-text>
         </a-camera>
         <a-sphere id="pokeball" radius="0.1" color="#FFF" position="0 1 -2"></a-sphere>
-    </a-scene>
 
-    <script>
-        document.querySelector('#button').addEventListener('click', () => {
-            getRandomPokemon();
-        })
-    </script>
+        <a-entity cursor></a-entity>
+    </a-scene>
 </body>
 
 </html>
