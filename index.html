@@ -21,11 +21,11 @@
                 .then(data => {
                     const sprite = data.sprites.front_default;
                     let name = data.name.toUpperCase().replace("-", " ");
-                    
+
                     if (changeText) {
                         document.querySelector('#pokemon-name').setAttribute('value', `Last Pokemon Caught: ${name}`);
                     }
-                    else{
+                    else {
                         pokemon.setAttribute('material', 'src', sprite);
                     }
                 })
@@ -35,6 +35,17 @@
         }
     </script>
     <script>
+        AFRAME.registerComponent('face-camera-y', {
+            init: function () {
+                this.camPos = new THREE.Vector3();
+            },
+            tick: function () {
+                this.el.sceneEl.camera.getWorldPosition(this.camPos);
+                const pos = this.el.object3D.position;
+                this.el.object3D.lookAt(this.camPos.x, pos.y, this.camPos.z);
+            }
+        });
+
         AFRAME.registerComponent('pokemon-route', {
             init: function () {
                 this.scoreText = document.querySelector('#pokemon-name');
@@ -53,7 +64,9 @@
                     getPokemon(dexNumber, pokemon);
                     pokemon.setAttribute('position', `${x} ${y} ${z}`);
                     pokemon.classList.add('pokemon'); // Marks it as shootable
-                    pokemon.setAttribute('look-at', '#main-camera');
+                    pokemon.setAttribute('shader', 'flat');
+                    pokemon.setAttribute('dithering', false);
+                    pokemon.setAttribute('face-camera-y', '');
 
                     this.el.sceneEl.appendChild(pokemon);
 
@@ -81,7 +94,7 @@
 <body>
     <a-scene pokemon-route>
 
-        <a-entity environment="preset: forest; skyType: atmosphere; lighting: none"></a-entity>
+        <a-entity environment="preset: yavapai; skyType: atmosphere; lighting: none"></a-entity>
 
         <a-light type="ambient" color="#222"></a-light>
 
