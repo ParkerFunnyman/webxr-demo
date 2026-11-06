@@ -8,7 +8,69 @@
     <script
         src="https://unpkg.com/aframe-environment-component@1.5.x/dist/aframe-environment-component.min.js"></script>
 
-    
+    <script>
+        function getRandomPokemon(name, sprite) {
+            const apiUrl = `https://pokeapi.co/api/v2/pokemon/${Math.floor(Math.random() * 1025) + 1}`;
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Not found");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const textElement = document.querySelector('#pokemon-name');
+                    const imageElement = document.querySelector('#pokemon-sprite');
+                    const pokemonSprite = data.sprites.front_default;
+                    textElement.setAttribute('value', `Last Pokemon Caught: ${data.name.toUpperCase().replace("-", " ")}`);
+                    imageElement.setAttribute('material', 'src', data.sprites.front_default);
+                    return pokemonSprite;
+                })
+                .catch(error => {
+                    document.querySelector('#pokemon-name').setAttribute('value', 'Last Pokemon Caught: MISSINGNO.');
+                    document.querySelector('#pokemon-sprite').setAttribute('material', 'src', '');
+                })
+        }
+    </script>
+    <script>
+        AFRAME.registerComponent('pokemon-route', {
+            init: function () {
+                this.scoreText = document.querySelector('#pokemon-name');
+
+                // The Spawner: Creates a dark target every 1.5 seconds
+                setInterval(() => {
+                    let target = document.createElement('a-plane');
+                    let x = (Math.random() * 12) - 6; // Spawns left to right
+                    let y = (Math.random() * 4) + 1;  // Spawns at different heights
+
+                    target.setAttribute('src', getRandomPokemon());
+                    target.setAttribute('position', `${x} ${y} -8`);
+                    target.setAttribute('material', 'transparent: true; alphaTest: 0.5');
+                    target.classList.add('target'); // Marks it as shootable
+                    this.el.sceneEl.appendChild(target);
+
+                    // Auto-despawn so the browser doesn't crash
+                    setTimeout(() => { if (target.parentNode) target.remove() }, 4000);
+                }, 1500);
+
+                // The Wand: Fires a spell when you click the mouse or tap the screen
+                window.addEventListener('mousedown', () => {
+                    document.querySelector('#wand').emit('cast'); // Triggers wand recoil animation
+
+                    let raycaster = document.querySelector('[raycaster]').components.raycaster;
+                    let hits = raycaster.intersectedEls;
+
+                    if (hits.length > 0 && hits[0].classList.contains('target')) {
+                        hits[0].setAttribute('color', '#00FFFF'); // Flash neon blue on hit
+                        setTimeout(() => hits[0].remove(), 100);  // Destroy target
+                        this.score += 100;
+                        this.scoreText.setAttribute('value', 'SCORE: ' + this.score);
+                    }
+                });
+            }
+        });
+    </script>
+
     <style>
         #spawner {
             position: absolute;
@@ -27,7 +89,7 @@
     <div id="spawner">
         <button id="button">New Critter</button>
     </div>
-    <a-scene>
+    <a-scene pokemon-route>
         <a-entity environment="preset: yavapai; skyType: atmosphere; lighting: none"></a-entity>
         <a-light type="ambient" color="#222"></a-light>
         <a-light type="directional" position="-1 2 1" intensity="1.5"></a-light>
@@ -37,32 +99,9 @@
                 width="3"></a-text>
         </a-camera>
         <a-sphere id="pokeball" radius="0.1" color="#FFF" position="0 1 -2"></a-sphere>
-        <a-plane id="pokemon-sprite" src=""
-            position="0 1 -5" material="transparent: true; alphaTest: 0.5"></a-plane>
     </a-scene>
 
     <script>
-        function getRandomPokemon() {
-            const apiUrl = `https://pokeapi.co/api/v2/pokemon/${Math.floor(Math.random() * 1025) + 1}`;
-            fetch(apiUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("Not found");
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    const textElement = document.querySelector('#pokemon-name');
-                    const imageElement = document.querySelector('#pokemon-sprite');
-                    textElement.setAttribute('value', `Last Pokemon Caught: ${data.name.toUpperCase().replace("-", " ")}`);
-                    imageElement.setAttribute('material', 'src', data.sprites.front_default);
-                })
-                .catch(error => {
-                    document.querySelector('#pokemon-name').setAttribute('value', 'Last Pokemon Caught: MISSINGNO.');
-                    document.querySelector('#pokemon-sprite').setAttribute('material', 'src', '');
-                })
-        }
-
         document.querySelector('#button').addEventListener('click', () => {
             getRandomPokemon();
         })
