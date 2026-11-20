@@ -9,9 +9,11 @@
     <script
         src="https://unpkg.com/aframe-environment-component@1.5.x/dist/aframe-environment-component.min.js"></script>
 
+    <script src="https://unpkg.com/aframe-look-at-component/dist/aframe-look-at-component.min.js"></script>
+
     <script>
-        function getPokemon(dexNum, pokemon, changeText) {
-            const apiUrl = `https://pokeapi.co/api/v2/pokemon/${dexNum}`;
+        function getPokemon(pokemon) {
+            const apiUrl = `https://pokeapi.co/api/v2/pokemon/${Math.floor(Math.random() * 1025) + 1}`;
             fetch(apiUrl)
                 .then(response => {
                     if (!response.ok) {
@@ -22,13 +24,8 @@
                 .then(data => {
                     const sprite = data.sprites.front_default;
                     let name = data.name.toUpperCase().replace("-", " ");
-
-                    if (changeText) {
-                        document.querySelector('#pokemon-name').setAttribute('value', `Last Pokemon Caught: ${name}`);
-                    }
-                    else {
-                        pokemon.setAttribute('material', 'src', sprite);
-                    }
+                    pokemon.setAttribute('material', 'src', sprite);
+                    pokemon.name = name;
                 })
                 .catch(error => {
                     document.querySelector('#pokemon-name').setAttribute('value', 'Last Pokemon Caught: MISSINGNO.');
@@ -38,36 +35,24 @@
 
     <!-- Registers customer Components -->
     <script>
-        AFRAME.registerComponent('face-camera-y', {
-            init: function () {
-                this.camPos = new THREE.Vector3();
-            },
-            tick: function () {
-                this.el.sceneEl.camera.getWorldPosition(this.camPos);
-                const pos = this.el.object3D.position;
-                this.el.object3D.lookAt(this.camPos.x, pos.y, this.camPos.z);
-            }
-        });
-
         AFRAME.registerComponent('pokemon-area', {
             init: function () {
                 setInterval(() => {
                     let pokemon = document.createElement('a-plane');
-                    let dexNumber = Math.floor(Math.random() * 1025) + 1;
-                    let pokemonName = "";
 
                     let x = (Math.random() * 12) - 6; // Spawns left to right
                     let y = (Math.random() * 2) + 1;  // Spawns at different heights
                     let z = -(Math.random() * 5) - 1; //Spawns closer and further to player
 
-                    getPokemon(dexNumber, pokemon, false);
+                    getPokemon(pokemon);
 
-                    pokemon.dexNum = dexNumber;
                     pokemon.classList.add('pokemon');
                     pokemon.setAttribute('material', 'transparent: true; alphaTest: 0.5');
                     pokemon.setAttribute('position', `${x} ${y} ${z}`);
                     pokemon.setAttribute('shader', 'flat');
-                    pokemon.setAttribute('face-camera-y', '');
+
+                    /*only do this bit if you have enough time*/
+                    pokemon.setAttribute('look-at', '#main-camera');
 
                     this.el.sceneEl.appendChild(pokemon);
 
@@ -83,8 +68,8 @@
 
                     if (hits.length > 0 && hits[0].classList.contains('pokemon')) {
                         const caught = hits[0];
+                        document.querySelector('#pokemon-name').setAttribute('value', `Last Pokemon Caught: ${caught.name}`);
                         setTimeout(() => caught.remove(), 100);
-                        getPokemon(caught.dexNum, undefined, true);
                     }
                 });
             }
@@ -108,7 +93,7 @@
 
             <a-entity cursor raycaster="objects: .pokemon; far: 50" position="0 0 -1"
                 geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.02"
-                material="color: gray; shader: flat; opacity: 0.7">
+                material="color: gray; shader: flat; opacity: 0.67">
             </a-entity>
             <a-sphere id="pokeball" radius="0.1" color="red" position="0.3 -0.3 -0.5" animation__catch="property: position; 
                 from: 0.3 -0.3 -0.5;
